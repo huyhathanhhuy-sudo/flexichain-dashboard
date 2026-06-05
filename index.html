@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flexichain — Dashboard Vận Chuyển</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0e0e0e;
+  --surface:#161616;
+  --card:#1c1c1c;
+  --border:#2a2a2a;
+  --text:#f0f0f0;
+  --muted:#666;
+  --accent:#f5a623;
+  --green:#4a8f6f;
+  --font:'DM Sans',sans-serif;
+  --mono:'DM Mono',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;}
+header{background:var(--surface);border-bottom:0.5px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.logo{font-size:17px;font-weight:600;letter-spacing:-0.3px;}
+.logo span{color:var(--accent);}
+.header-right{display:flex;align-items:center;gap:1rem;}
+#last-updated{font-size:12px;color:var(--muted);font-family:var(--mono);}
+#refresh-btn{background:transparent;border:0.5px solid var(--border);color:var(--muted);padding:5px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:var(--font);transition:all 0.15s;}
+#refresh-btn:hover{border-color:#444;color:var(--text);}
+main{padding:1.5rem 2rem;max-width:1400px;margin:0 auto;}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem;}
+.kpi{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:1rem 1.25rem;}
+.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;}
+.kpi-value{font-size:24px;font-weight:600;font-family:var(--mono);color:var(--text);}
+.kpi-value.accent{color:var(--accent);}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+.charts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1rem;}
+.chart-card{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:1.25rem;}
+.chart-title{font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:1rem;}
+.legend{display:flex;gap:14px;margin-bottom:10px;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);}
+.legend-dot{width:10px;height:10px;border-radius:2px;}
+.chart-wrap{position:relative;width:100%;height:200px;}
+.table-card{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:1.25rem;margin-bottom:1rem;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;padding:8px 10px;color:var(--muted);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;border-bottom:0.5px solid var(--border);}
+th:not(:first-child){text-align:right;}
+td{padding:9px 10px;border-bottom:0.5px solid #1f1f1f;color:#ccc;}
+td:not(:first-child){text-align:right;font-family:var(--mono);font-size:12px;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,0.02);}
+.accent-text{color:var(--accent);}
+.status-bar{display:flex;align-items:center;gap:8px;margin-bottom:1.5rem;}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+#status-text{font-size:12px;color:var(--muted);font-family:var(--mono);}
+.loading{text-align:center;padding:4rem;color:var(--muted);font-size:14px;}
+@media(max-width:768px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .charts-grid{grid-template-columns:1fr;}
+  main{padding:1rem;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Flex<span>i</span>chain <span style="color:#333;font-weight:400;font-size:13px;margin-left:6px;">/ Dashboard Vận Chuyển</span></div>
+  <div class="header-right">
+    <span id="last-updated">—</span>
+    <button id="refresh-btn" onclick="loadData()">↻ Refresh</button>
+  </div>
+</header>
+
+<main>
+  <div class="status-bar">
+    <div class="status-dot" id="status-dot"></div>
+    <span id="status-text">Đang kết nối Google Sheets...</span>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Tổng doanh thu</div><div class="kpi-value" id="kpi-dt">—</div></div>
+    <div class="kpi"><div class="kpi-label">Tổng chi phí</div><div class="kpi-value" id="kpi-cp">—</div></div>
+    <div class="kpi"><div class="kpi-label">Tổng lợi nhuận</div><div class="kpi-value accent" id="kpi-ln">—</div></div>
+    <div class="kpi"><div class="kpi-label">Gross margin</div><div class="kpi-value accent" id="kpi-margin">—</div></div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">Doanh thu & lợi nhuận theo tháng</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#f5a623;"></div>Doanh thu</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#4a8f6f;"></div>Lợi nhuận</div>
+      </div>
+      <div class="chart-wrap"><canvas id="chartThang" role="img" aria-label="Bar chart doanh thu và lợi nhuận theo tháng"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Tỷ lệ doanh thu theo khu vực</div>
+      <div class="chart-wrap"><canvas id="chartKV" role="img" aria-label="Pie chart tỷ lệ doanh thu theo khu vực"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Trend doanh thu theo tuần</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#f5a623;"></div>Doanh thu</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#4a8f6f;"></div>Lợi nhuận</div>
+      </div>
+      <div class="chart-wrap"><canvas id="chartTuan" role="img" aria-label="Line chart trend theo tuần"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Doanh thu theo loại xe</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#f5a623;"></div>Doanh thu</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#4a8f6f;"></div>Lợi nhuận</div>
+      </div>
+      <div class="chart-wrap"><canvas id="chartLoai" role="img" aria-label="Bar chart doanh thu theo loại xe"></canvas></div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="chart-title" style="margin-bottom:1rem;">Top 10 khách hàng lợi nhuận cao nhất</div>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:40%;">Khách hàng</th>
+          <th style="width:20%;">Doanh thu</th>
+          <th style="width:20%;">Lợi nhuận</th>
+          <th style="width:20%;">Margin</th>
+        </tr>
+      </thead>
+      <tbody id="tableKHBody">
+        <tr><td colspan="4" style="text-align:center;color:#444;padding:2rem;">Đang tải dữ liệu...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+const SHEET_ID='1ubmpZLmf9KYNbJIzqJwMo3qBuYPiYWBVKpbTZbuwsQ8';
+const API_KEY='AIzaSyCQKpN8jk7wVxifofYAO-aTRTSzpl1H7Ik';
+const SHEET_NAME='data';
+const fmtM=v=>(v/1e6).toFixed(1)+'M';
+const gridColor='rgba(255,255,255,0.05)';
+const scaleOpts={
+  y:{ticks:{callback:v=>v+'M',font:{size:11},color:'#555'},grid:{color:gridColor}},
+  x:{ticks:{font:{size:11},color:'#555'},grid:{display:false}}
+};
+let charts={};
+
+function destroyCharts(){Object.values(charts).forEach(c=>c.destroy());charts={};}
+function parseNum(v){return Number(String(v||'').replace(/[^0-9.-]/g,''))||0;}
+function groupBy(rows,col,dtCol,cpCol,lnCol){
+  return rows.reduce((acc,r)=>{
+    const k=r[col]||'Khác';
+    if(!acc[k])acc[k]={dt:0,cp:0,ln:0};
+    acc[k].dt+=parseNum(r[dtCol]);
+    acc[k].cp+=parseNum(r[cpCol]);
+    acc[k].ln+=parseNum(r[lnCol]);
+    return acc;
+  },{});
+}
+
+function renderDashboard(rows,dtCol,cpCol,lnCol,thangCol,distCol,tuanCol,noteCol,nameCol){
+  destroyCharts();
+  const totalDT=rows.reduce((a,r)=>a+parseNum(r[dtCol]),0);
+  const totalCP=rows.reduce((a,r)=>a+parseNum(r[cpCol]),0);
+  const totalLN=rows.reduce((a,r)=>a+parseNum(r[lnCol]),0);
+  document.getElementById('kpi-dt').textContent=fmtM(totalDT);
+  document.getElementById('kpi-cp').textContent=fmtM(totalCP);
+  document.getElementById('kpi-ln').textContent=fmtM(totalLN);
+  document.getElementById('kpi-margin').textContent=totalDT?(totalLN/totalDT*100).toFixed(1)+'%':'—';
+
+  const byThang=groupBy(rows,thangCol,dtCol,cpCol,lnCol);
+  const thangKeys=Object.keys(byThang).sort();
+  charts.thang=new Chart(document.getElementById('chartThang'),{
+    type:'bar',
+    data:{labels:thangKeys,datasets:[
+      {label:'Doanh thu',data:thangKeys.map(k=>Math.round(byThang[k].dt/1e6)),backgroundColor:'#f5a623',borderRadius:3},
+      {label:'Loi nhuan',data:thangKeys.map(k=>Math.round(byThang[k].ln/1e6)),backgroundColor:'#4a8f6f',borderRadius:3}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:scaleOpts}
+  });
+
+  const byKV=groupBy(rows,distCol,dtCol,cpCol,lnCol);
+  const kvKeys=Object.keys(byKV).sort((a,b)=>byKV[b].dt-byKV[a].dt).slice(0,8);
+  const pieColors=['#f5a623','#4a8f6f','#888','#d85a30','#534ab7','#d4537e','#3266ad','#1d9e75'];
+  charts.kv=new Chart(document.getElementById('chartKV'),{
+    type:'pie',
+    data:{labels:kvKeys,datasets:[{data:kvKeys.map(k=>Math.round(byKV[k].dt/1e6)),backgroundColor:pieColors}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{
+      legend:{display:true,position:'bottom',labels:{color:'#666',font:{size:10},boxWidth:10,padding:8}},
+      tooltip:{callbacks:{label:ctx=>ctx.label+': '+ctx.parsed+'M'}}
+    }}
+  });
+
+  const byTuan=groupBy(rows,tuanCol,dtCol,cpCol,lnCol);
+  const tuanKeys=Object.keys(byTuan).sort((a,b)=>Number(a)-Number(b));
+  charts.tuan=new Chart(document.getElementById('chartTuan'),{
+    type:'line',
+    data:{labels:tuanKeys,datasets:[
+      {label:'Doanh thu',data:tuanKeys.map(k=>Math.round(byTuan[k].dt/1e6)),borderColor:'#f5a623',backgroundColor:'rgba(245,166,35,0.06)',tension:0.3,pointRadius:3,pointBackgroundColor:'#f5a623'},
+      {label:'Loi nhuan',data:tuanKeys.map(k=>Math.round(byTuan[k].ln/1e6)),borderColor:'#4a8f6f',backgroundColor:'rgba(74,143,111,0.06)',tension:0.3,pointRadius:3,pointBackgroundColor:'#4a8f6f'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:scaleOpts}
+  });
+
+  const byLoai=groupBy(rows,noteCol,dtCol,cpCol,lnCol);
+  const loaiKeys=Object.keys(byLoai).filter(k=>k&&k!=='Khác');
+  charts.loai=new Chart(document.getElementById('chartLoai'),{
+    type:'bar',
+    data:{labels:loaiKeys,datasets:[
+      {label:'Doanh thu',data:loaiKeys.map(k=>Math.round(byLoai[k].dt/1e6)),backgroundColor:'#f5a623',borderRadius:3},
+      {label:'Loi nhuan',data:loaiKeys.map(k=>Math.round(byLoai[k].ln/1e6)),backgroundColor:'#4a8f6f',borderRadius:3}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:scaleOpts}
+  });
+
+  const byKH=groupBy(rows,nameCol,dtCol,cpCol,lnCol);
+  const top10=Object.entries(byKH).sort((a,b)=>b[1].ln-a[1].ln).slice(0,10);
+  document.getElementById('tableKHBody').innerHTML=top10.map(([name,v],i)=>`
+    <tr>
+      <td style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:0;" title="${name}">${i+1}. ${name}</td>
+      <td>${fmtM(v.dt)}</td>
+      <td class="accent-text">${fmtM(v.ln)}</td>
+      <td class="accent-text">${v.dt?(v.ln/v.dt*100).toFixed(1)+'%':'—'}</td>
+    </tr>
+  `).join('');
+
+  const now=new Date();
+  document.getElementById('last-updated').textContent='Cập nhật: '+now.toLocaleTimeString('vi-VN');
+  document.getElementById('status-text').textContent=rows.length.toLocaleString()+' đơn hàng';
+  document.getElementById('status-dot').style.background='#4a8f6f';
+}
+
+async function loadData(){
+  document.getElementById('status-text').textContent='Đang tải...';
+  document.getElementById('status-dot').style.background='#f5a623';
+  try{
+    const url=`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
+    const res=await fetch(url);
+    const json=await res.json();
+    if(json.error)throw new Error(json.error.message);
+    const[headerRow,...dataRows]=json.values;
+    const headers=headerRow.map(h=>h.trim());
+    const find=name=>headers.find(h=>h===name||h.toLowerCase()===name.toLowerCase())||name;
+    const dtCol=find('Doanh thu');
+    const cpCol=find('Chi phí');
+    const lnCol=find('Lợi nhuận');
+    const thangCol=find('Tháng');
+    const distCol=find('District');
+    const tuanCol=find('Tuần');
+    const noteCol=find('NOTE');
+    const nameCol=find('Full name');
+    const rows=dataRows
+      .filter(r=>r.length>0)
+      .map(r=>{const obj={};headers.forEach((h,i)=>obj[h]=r[i]||'');return obj;})
+      .filter(r=>parseNum(r[dtCol])>0);
+    renderDashboard(rows,dtCol,cpCol,lnCol,thangCol,distCol,tuanCol,noteCol,nameCol);
+  }catch(e){
+    document.getElementById('status-text').textContent='Lỗi: '+e.message;
+    document.getElementById('status-dot').style.background='#d85a30';
+  }
+}
+
+loadData();
+setInterval(loadData, 5*60*1000);
+</script>
+</body>
+</html>
