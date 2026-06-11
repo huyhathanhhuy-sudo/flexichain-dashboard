@@ -208,6 +208,7 @@ document.getElementById('intro-video').addEventListener('ended',skipIntro);
   <div class="nav-tab" onclick="showPage('area',this)">Khu vực</div>
   <div class="nav-tab" onclick="showPage('ltlftl',this)">LTL vs FTL</div>
   <div class="nav-tab" onclick="showPage('efficiency',this)">Hiệu suất</div>
+  <div class="nav-tab" onclick="showPage('nhaxe',this)">Nhà xe</div>
 </nav>
 
 <div class="global-filter">
@@ -261,7 +262,7 @@ document.getElementById('intro-video').addEventListener('ended',skipIntro);
 
   <!-- PAGE 1: EXECUTIVE -->
   <div class="page active" id="page-executive">
-    <div class="kpi-grid kpi-grid-4" id="exec-kpi"></div>
+    <div class="kpi-grid kpi-grid-3" id="exec-kpi"></div>
     <div class="charts-grid charts-2">
       <div class="chart-card">
         <div class="chart-title">Doanh thu & lợi nhuận theo tháng</div>
@@ -272,12 +273,8 @@ document.getElementById('intro-video').addEventListener('ended',skipIntro);
         <div class="chart-wrap"><canvas id="c-exec-thang" role="img" aria-label="Bar chart doanh thu lợi nhuận theo tháng"></canvas></div>
       </div>
       <div class="chart-card">
-        <div class="chart-title">Doanh thu/đơn & Lợi nhuận/đơn theo tuần</div>
-        <div class="legend">
-          <div class="legend-item"><div class="legend-dot" style="background:#f5a623;"></div>DT/đơn</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#4a8f6f;"></div>LN/đơn</div>
-        </div>
-        <div class="chart-wrap"><canvas id="c-exec-pershipment" role="img" aria-label="Line chart doanh thu lợi nhuận trên đơn"></canvas></div>
+        <div class="chart-title">Số đơn hàng theo tuần</div>
+        <div class="chart-wrap"><canvas id="c-exec-sodon" role="img" aria-label="Bar chart số đơn hàng theo tuần"></canvas></div>
       </div>
       <div class="chart-card">
         <div class="chart-title">Trend theo tuần</div>
@@ -290,6 +287,14 @@ document.getElementById('intro-video').addEventListener('ended',skipIntro);
       <div class="chart-card">
         <div class="chart-title">Margin theo tuần (%)</div>
         <div class="chart-wrap"><canvas id="c-exec-margin" role="img" aria-label="Line chart margin theo tháng"></canvas></div>
+      </div>
+      <div class="chart-card full">
+        <div class="chart-title">Kẹo & Bánh theo tuần (thùng)</div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#f5a623;"></div>Kẹo</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#4a8f6f;"></div>Bánh</div>
+        </div>
+        <div class="chart-wrap"><canvas id="c-exec-thung" role="img" aria-label="Stacked bar kẹo bánh theo tuần"></canvas></div>
       </div>
     </div>
   </div>
@@ -306,17 +311,22 @@ document.getElementById('intro-video').addEventListener('ended',skipIntro);
         <div class="chart-title">Top 10 NPP theo lợi nhuận</div>
         <div class="chart-wrap tall"><canvas id="c-kh-top-ln" role="img" aria-label="Bar chart top NPP lợi nhuận"></canvas></div>
       </div>
-      <div class="chart-card full">
-        <div class="chart-title">Pareto khách hàng (Doanh thu tích lũy %)</div>
-        <div class="chart-wrap"><canvas id="c-kh-pareto" role="img" aria-label="Pareto chart khách hàng"></canvas></div>
+      <div class="chart-card">
+        <div class="chart-title">Phân bổ khách hàng theo khu vực</div>
+        <div class="chart-wrap" style="height:320px;"><canvas id="c-kh-area" role="img" aria-label="Bar chart khách hàng theo khu vực"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">% Đóng góp doanh thu theo rank khách hàng</div>
+        <div class="chart-wrap" style="height:320px;"><canvas id="c-kh-pareto" role="img" aria-label="Pareto chart khách hàng"></canvas></div>
       </div>
     </div>
     <div class="table-card">
       <div class="chart-title">Chi tiết khách hàng</div>
       <table>
         <thead><tr>
-          <th style="width:35%;">Khách hàng</th>
-          <th>Doanh thu</th><th>Chi phí</th><th>Lợi nhuận</th><th>Margin</th>
+          <th style="width:4%;">STT</th>
+          <th style="width:33%;">Khách hàng</th>
+          <th>Doanh thu</th><th>Chi phí</th><th>Lợi nhuận</th><th>% DT tích lũy</th>
         </tr></thead>
         <tbody id="kh-table"></tbody>
       </table>
@@ -337,14 +347,18 @@ document.getElementById('intro-video').addEventListener('ended',skipIntro);
       </div>
       <div class="chart-card">
         <div class="chart-title">Tỷ lệ doanh thu theo khu vực</div>
-        <div class="chart-wrap"><canvas id="c-area-pie" role="img" aria-label="Pie chart tỷ lệ khu vực"></canvas></div>
+        <div class="chart-wrap" style="height:280px;"><canvas id="c-area-pie" role="img" aria-label="Pie chart tỷ lệ khu vực"></canvas></div>
       </div>
       <div class="chart-card">
         <div class="chart-title">Margin theo khu vực (%)</div>
         <div class="chart-wrap"><canvas id="c-area-margin" role="img" aria-label="Bar chart margin khu vực"></canvas></div>
       </div>
       <div class="chart-card">
-        <div class="chart-title">Doanh thu/đơn theo khu vực</div>
+        <div class="chart-title">Doanh thu/đơn & Chi phí/đơn theo khu vực</div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#f5a623;"></div>DT/đơn</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#4a8f6f;"></div>CP/đơn</div>
+        </div>
         <div class="chart-wrap"><canvas id="c-area-per-stt" role="img" aria-label="Bar chart doanh thu trên đơn khu vực"></canvas></div>
       </div>
     </div>
@@ -364,8 +378,8 @@ document.getElementById('intro-video').addEventListener('ended',skipIntro);
     <div class="kpi-grid kpi-grid-4" id="ltl-kpi"></div>
     <div class="charts-grid charts-2">
       <div class="chart-card">
-        <div class="chart-title">Trend doanh thu theo tuần (theo loại)</div>
-        <div class="chart-wrap"><canvas id="c-ltl-dt" role="img" aria-label="Bar chart doanh thu loại xe"></canvas></div>
+        <div class="chart-title">Tỷ trọng doanh thu theo loại xe</div>
+        <div class="chart-wrap" style="height:240px;"><canvas id="c-ltl-dt" role="img" aria-label="Donut chart doanh thu loại xe"></canvas></div>
       </div>
       <div class="chart-card">
         <div class="chart-title">Trend lợi nhuận theo tuần (theo loại)</div>
@@ -392,11 +406,39 @@ document.getElementById('intro-video').addEventListener('ended',skipIntro);
           <div class="legend-item"><div class="legend-dot" style="background:#f5a623;"></div>DT/khối</div>
           <div class="legend-item"><div class="legend-dot" style="background:#4a8f6f;"></div>CP/khối</div>
         </div>
-        <div class="chart-wrap"><canvas id="c-eff-cbm" role="img" aria-label="Line chart doanh thu chi phí trên khối"></canvas></div>
+        <div class="chart-wrap"><canvas id="c-eff-cbm" role="img" aria-label="Clustered bar doanh thu chi phí trên khối"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Tốc độ tăng trưởng DT/khối & CP/khối (%)</div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#f5a623;"></div>Tăng trưởng DT/khối</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#4a8f6f;"></div>Tăng trưởng CP/khối</div>
+        </div>
+        <div class="chart-wrap"><canvas id="c-eff-growth" role="img" aria-label="Line chart tăng trưởng DT/khối CP/khối"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Doanh thu/đơn & Lợi nhuận/đơn theo tuần</div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#f5a623;"></div>DT/đơn</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#4a8f6f;"></div>LN/đơn</div>
+        </div>
+        <div class="chart-wrap"><canvas id="c-eff-pershipment" role="img" aria-label="Clustered bar doanh thu lợi nhuận trên đơn"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Tốc độ tăng trưởng DT/đơn & LN/đơn (%)</div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#f5a623;"></div>Tăng trưởng DT/đơn</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#4a8f6f;"></div>Tăng trưởng LN/đơn</div>
+        </div>
+        <div class="chart-wrap"><canvas id="c-eff-pershipment-growth" role="img" aria-label="Line chart tăng trưởng DT/đơn LN/đơn"></canvas></div>
       </div>
       <div class="chart-card">
         <div class="chart-title">Lợi nhuận/khối theo tuần</div>
         <div class="chart-wrap"><canvas id="c-eff-ln-cbm" role="img" aria-label="Bar chart lợi nhuận trên khối"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Lợi nhuận/đơn theo tuần</div>
+        <div class="chart-wrap"><canvas id="c-eff-ln-don" role="img" aria-label="Bar chart lợi nhuận trên đơn"></canvas></div>
       </div>
       <div class="chart-card">
         <div class="chart-title">Số xe hoạt động theo tuần</div>
@@ -406,6 +448,40 @@ document.getElementById('intro-video').addEventListener('ended',skipIntro);
         <div class="chart-title">Load Factor theo tuần (%)</div>
         <div class="chart-wrap"><canvas id="c-eff-load" role="img" aria-label="Line chart load factor"></canvas></div>
       </div>
+    </div>
+  </div>
+
+  <!-- PAGE 6: NHÀ XE -->
+  <div class="page" id="page-nhaxe">
+    <div class="kpi-grid kpi-grid-4" id="nx-kpi"></div>
+    <div class="charts-grid charts-2">
+      <div class="chart-card">
+        <div class="chart-title">Top 10 nhà xe theo số đơn</div>
+        <div class="chart-wrap tall"><canvas id="c-nx-top-stt" role="img" aria-label="Horizontal bar top nhà xe số đơn"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Top 10 nhà xe theo chi phí</div>
+        <div class="chart-wrap tall"><canvas id="c-nx-top-cp" role="img" aria-label="Horizontal bar top nhà xe chi phí"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Chi phí/đơn theo nhà xe</div>
+        <div class="chart-wrap tall"><canvas id="c-nx-cpdon" role="img" aria-label="Bar chart chi phí trên đơn nhà xe"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Phân bổ số đơn theo nhà xe</div>
+        <div class="chart-wrap tall"><canvas id="c-nx-donut" role="img" aria-label="Donut chart phân bổ nhà xe"></canvas></div>
+      </div>
+    </div>
+    <div class="table-card">
+      <div class="chart-title">Chi tiết nhà xe</div>
+      <table>
+        <thead><tr>
+          <th style="width:3%;">STT</th>
+          <th style="width:22%;">Nhà xe</th>
+          <th>Số đơn</th><th>Số chuyến</th><th>Chi phí</th><th>CP/đơn</th><th>% tổng CP</th>
+        </tr></thead>
+        <tbody id="nx-table"></tbody>
+      </table>
     </div>
   </div>
 </main>
@@ -423,6 +499,17 @@ const fmtM=v=>(v/1e6).toFixed(1)+'M';
 const fmtK=v=>(v/1000).toFixed(0)+'K';
 const fmtPct=v=>v.toFixed(1)+'%';
 const parseNum=v=>Number(String(v||'').replace(/[^0-9.-]/g,''))||0;
+
+function gradientColors(n){
+  const r1=245,g1=166,b1=35;
+  const r2=74,g2=143,b2=111;
+  if(n===1)return[ACC];
+  if(n===2)return[ACC,GRN];
+  return Array.from({length:n},(_,i)=>{
+    const t=i/(n-1);
+    return`rgb(${Math.round(r1+(r2-r1)*t)},${Math.round(g1+(g2-g1)*t)},${Math.round(b1+(b2-b1)*t)})`;
+  });
+}
 
 const mkScale=fmt=>({
   y:{ticks:{callback:v=>fmt?v+fmt:v,font:{size:11},color:'#555'},grid:{color:GRID}},
@@ -545,13 +632,16 @@ function destroyChart(...ids){ids.forEach(id=>{if(charts[id]){charts[id].destroy
 function groupBy(rows,col){
   return rows.reduce((acc,r)=>{
     const k=r[col]||'Khác';
-    if(!acc[k])acc[k]={dt:0,cp:0,ln:0,stt:0,khoi:0,xe:0};
+    if(!acc[k])acc[k]={dt:0,cp:0,ln:0,stt:0,khoi:0,xe:0,thung:0,keo:0,banh:0};
     acc[k].dt+=parseNum(r['Doanh thu']);
     acc[k].cp+=parseNum(r['Chi phí']);
     acc[k].ln+=parseNum(r['Lợi nhuận']);
     acc[k].stt+=1;
     acc[k].khoi+=parseNum(r['Số khối']);
     acc[k].xe+=parseNum(r['Số xe hoạt động']);
+    acc[k].thung+=parseNum(r['Tổng thùng']);
+    acc[k].keo+=parseNum(r['Kẹo']);
+    acc[k].banh+=parseNum(r['Bánh']);
     return acc;
   },{});
 }
@@ -601,14 +691,19 @@ function renderExecutive(){
   const totalDT=rows.reduce((a,r)=>a+parseNum(r['Doanh thu']),0);
   const totalCP=rows.reduce((a,r)=>a+parseNum(r['Chi phí']),0);
   const totalLN=rows.reduce((a,r)=>a+parseNum(r['Lợi nhuận']),0);
+  const totalChuyen=new Set(rows.map(r=>r['Mã chuyến']).filter(Boolean)).size;
   const fmtVND=v=>new Intl.NumberFormat('vi-VN').format(Math.round(v))+' đ';
   document.getElementById('exec-kpi').innerHTML=
-    mkKPI('Tổng doanh thu',fmtVND(totalDT))+mkKPI('Tổng chi phí',fmtVND(totalCP))+
-    mkKPI('Tổng lợi nhuận',fmtVND(totalLN),'accent')+mkKPI('Gross margin',fmtPct(totalDT?totalLN/totalDT*100:0),'accent');
+    mkKPI('Tổng doanh thu',fmtVND(totalDT))+
+    mkKPI('Tổng chi phí',fmtVND(totalCP))+
+    mkKPI('Tổng lợi nhuận',fmtVND(totalLN),'accent')+
+    mkKPI('Gross margin',fmtPct(totalDT?totalLN/totalDT*100:0),'accent')+
+    mkKPI('Số đơn hàng',rows.length.toLocaleString('vi-VN'))+
+    mkKPI('Số chuyến đã chạy',totalChuyen.toLocaleString('vi-VN'));
 
   const byThang=groupBy(rows,'Tháng');
   const thangKeys=Object.keys(byThang).sort();
-  destroyChart('c-exec-thang','c-exec-pershipment','c-exec-tuan','c-exec-margin');
+  destroyChart('c-exec-thang','c-exec-sodon','c-exec-tuan','c-exec-margin','c-exec-thung');
 
   const byTuan=groupBy(rows,'Tuần');
   const tuanKeys=Object.keys(byTuan).sort((a,b)=>Number(a)-Number(b));
@@ -617,10 +712,27 @@ function renderExecutive(){
     {data:thangKeys.map(k=>+(byThang[k].dt/1e6).toFixed(1)),backgroundColor:ACC},
     {data:thangKeys.map(k=>+(byThang[k].ln/1e6).toFixed(1)),backgroundColor:GRN}
   ],'M');
-  mkLine('c-exec-pershipment',tuanKeys,[
-    {data:tuanKeys.map(k=>+(byTuan[k].dt/byTuan[k].stt/1000).toFixed(0)),borderColor:ACC,backgroundColor:'rgba(245,166,35,0.06)'},
-    {data:tuanKeys.map(k=>+(byTuan[k].ln/byTuan[k].stt/1000).toFixed(0)),borderColor:GRN,backgroundColor:'rgba(74,143,111,0.06)'}
-  ],'');
+  const growthData=tuanKeys.map((k,i)=>{
+    if(i===0)return null;
+    const prev=byTuan[tuanKeys[i-1]].stt;
+    const curr=byTuan[k].stt;
+    return prev?+((curr-prev)/prev*100).toFixed(1):null;
+  });
+  charts['c-exec-sodon']=new Chart(document.getElementById('c-exec-sodon'),{
+    type:'bar',
+    data:{labels:tuanKeys,datasets:[
+      {type:'bar',label:'Số đơn',data:tuanKeys.map(k=>byTuan[k].stt),backgroundColor:ACC,borderRadius:3,yAxisID:'y',order:1},
+      {type:'line',label:'Tăng trưởng',data:growthData,borderColor:GRN,backgroundColor:'rgba(74,143,111,0.08)',
+        tension:0.3,pointRadius:3,pointBackgroundColor:GRN,yAxisID:'y1',spanGaps:true,order:0}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{
+        y:{ticks:{font:{size:11},color:'#555'},grid:{color:GRID}},
+        y1:{display:false,position:'right'},
+        x:{ticks:{font:{size:10},color:'#555'},grid:{display:false}}
+      }
+    }
+  });
   mkLine('c-exec-tuan',tuanKeys,[
     {data:tuanKeys.map(k=>+(byTuan[k].dt/1e6).toFixed(1)),borderColor:ACC,backgroundColor:'rgba(245,166,35,0.06)'},
     {data:tuanKeys.map(k=>+(byTuan[k].ln/1e6).toFixed(1)),borderColor:GRN,backgroundColor:'rgba(74,143,111,0.06)'}
@@ -628,6 +740,20 @@ function renderExecutive(){
   mkLine('c-exec-margin',tuanKeys,[
     {data:tuanKeys.map(k=>+(byTuan[k].ln/byTuan[k].dt*100).toFixed(1)),borderColor:ACC,backgroundColor:'rgba(245,166,35,0.06)'}
   ],'%');
+  charts['c-exec-thung']=new Chart(document.getElementById('c-exec-thung'),{
+    type:'bar',
+    data:{labels:tuanKeys,datasets:[
+      {label:'Kẹo',data:tuanKeys.map(k=>Math.round(byTuan[k].keo)),backgroundColor:ACC,borderRadius:3,stack:'s'},
+      {label:'Bánh',data:tuanKeys.map(k=>Math.round(byTuan[k].banh)),backgroundColor:GRN,borderRadius:3,stack:'s'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        y:{ticks:{font:{size:11},color:'#555'},grid:{color:GRID},stacked:true},
+        x:{ticks:{font:{size:10},color:'#555'},grid:{display:false},stacked:true}
+      }
+    }
+  });
 }
 
 function renderCustomer(){
@@ -645,28 +771,70 @@ function renderCustomer(){
   const top10dt=sorted.slice(0,10);
   const top10ln=[...Object.entries(byKH)].sort((a,b)=>b[1].ln-a[1].ln).slice(0,10);
   const short=n=>n.length>22?n.substring(0,20)+'…':n;
-  destroyChart('c-kh-top-dt','c-kh-top-ln','c-kh-pareto');
+  destroyChart('c-kh-top-dt','c-kh-top-ln','c-kh-pareto','c-kh-area');
   mkHBar('c-kh-top-dt',top10dt.map(([n])=>short(n)),top10dt.map(([,v])=>+(v.dt/1e6).toFixed(1)),ACC);
   mkHBar('c-kh-top-ln',top10ln.map(([n])=>short(n)),top10ln.map(([,v])=>+(v.ln/1e6).toFixed(1)),GRN);
 
-  let cum=0;
-  const paretoData=sorted.map(([,v])=>{cum+=v.dt;return+(cum/totalDT*100).toFixed(1);});
-  charts['c-kh-pareto']=new Chart(document.getElementById('c-kh-pareto'),{
-    type:'line',
-    data:{labels:sorted.map(([n])=>n),datasets:[{data:paretoData,borderColor:ACC,backgroundColor:'rgba(245,166,35,0.06)',tension:0.2,pointRadius:1}]},
+  // Chart: khách hàng theo khu vực
+  const byKhuVuc=rows.reduce((acc,r)=>{
+    const kv=r['Khu vực']||'Khác';
+    const npp=r['NPP']||'';
+    if(!acc[kv])acc[kv]={dt:0,npp:new Set()};
+    acc[kv].dt+=parseNum(r['Doanh thu']);
+    if(npp)acc[kv].npp.add(npp);
+    return acc;
+  },{});
+  const kvKeys=Object.keys(byKhuVuc).sort((a,b)=>byKhuVuc[b].dt-byKhuVuc[a].dt);
+  charts['c-kh-area']=new Chart(document.getElementById('c-kh-area'),{
+    type:'bar',
+    data:{labels:kvKeys,datasets:[
+      {label:'Doanh thu',data:kvKeys.map(k=>+(byKhuVuc[k].dt/1e6).toFixed(1)),backgroundColor:ACC,borderRadius:4,yAxisID:'y',order:1},
+      {label:'Số NPP',data:kvKeys.map(k=>byKhuVuc[k].npp.size),borderColor:GRN,backgroundColor:'rgba(74,143,111,0.15)',
+        type:'line',tension:0.3,pointRadius:5,pointBackgroundColor:GRN,yAxisID:'y1',order:0}
+    ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{y:{ticks:{callback:v=>v+'%',font:{size:11},color:'#555'},grid:{color:GRID},max:100},x:{ticks:{font:{size:9},color:'#555',maxRotation:45},grid:{display:false}}}
+      scales:{
+        y:{ticks:{callback:v=>v+'M',font:{size:11},color:'#555'},grid:{color:GRID}},
+        y1:{position:'right',ticks:{callback:v=>v+' NPP',font:{size:11},color:'#555'},grid:{display:false}},
+        x:{ticks:{font:{size:11},color:'#888'},grid:{display:false}}
+      }
     }
   });
 
-  document.getElementById('kh-table').innerHTML=sorted.map(([name,v])=>`
-    <tr>
+  const indivPct=sorted.map(([,v])=>+(v.dt/totalDT*100).toFixed(2));
+  let cum2=0;
+  const cumulPct=indivPct.map(p=>{cum2+=p;return+cum2.toFixed(1);});
+  const ranks=sorted.map((_,i)=>i+1);
+  charts['c-kh-pareto']=new Chart(document.getElementById('c-kh-pareto'),{
+    type:'bar',
+    data:{labels:ranks,datasets:[
+      {type:'bar',label:'% DT',data:indivPct,backgroundColor:GRN,borderRadius:2,yAxisID:'y',order:1},
+      {type:'line',label:'Tích lũy %',data:cumulPct,borderColor:ACC,backgroundColor:'rgba(245,166,35,0.06)',
+        tension:0.2,pointRadius:0,yAxisID:'y1',order:0},
+      {type:'line',label:'80%',data:ranks.map(()=>80),borderColor:'rgba(255,255,255,0.25)',
+        borderDash:[6,4],borderWidth:1,pointRadius:0,yAxisID:'y1',order:2}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{
+        y:{ticks:{callback:v=>v+'%',font:{size:11},color:'#555'},grid:{color:GRID}},
+        y1:{position:'right',max:100,ticks:{callback:v=>v+'%',font:{size:11},color:'#555'},grid:{display:false}},
+        x:{ticks:{font:{size:10},color:'#555'},grid:{display:false}}
+      }
+    }
+  });
+
+  let cumDT=0;
+  document.getElementById('kh-table').innerHTML=sorted.map(([name,v],i)=>{
+    cumDT+=v.dt;
+    const cumPct=totalDT?(cumDT/totalDT*100).toFixed(1):'—';
+    return`<tr>
+      <td style="color:var(--muted);font-family:var(--mono);">${i+1}</td>
       <td style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:0;" title="${name}">${name}</td>
       <td>${fmtVND(v.dt)}</td><td>${fmtVND(v.cp)}</td>
       <td style="color:${v.ln>=0?ACC:RED};">${fmtVND(v.ln)}</td>
-      <td style="color:${v.ln>=0?ACC:RED};">${v.dt?fmtPct(v.ln/v.dt*100):'—'}</td>
-    </tr>
-  `).join('');
+      <td style="color:${GRN};">${cumPct}%</td>
+    </tr>`;
+  }).join('');
 }
 
 function renderArea(){
@@ -686,9 +854,62 @@ function renderArea(){
     {data:areaKeys.map(k=>+(byArea[k].dt/1e6).toFixed(1)),backgroundColor:ACC},
     {data:areaKeys.map(k=>+(byArea[k].ln/1e6).toFixed(1)),backgroundColor:GRN}
   ],'M');
-  mkPie('c-area-pie',areaKeys.slice(0,8),areaKeys.slice(0,8).map(k=>+(byArea[k].dt/1e6).toFixed(1)));
-  mkBar('c-area-margin',areaKeys,[{data:areaKeys.map(k=>+(byArea[k].ln/byArea[k].dt*100).toFixed(1)),backgroundColor:ACC}],'%');
-  mkBar('c-area-per-stt',areaKeys,[{data:areaKeys.map(k=>+(byArea[k].dt/byArea[k].stt/1000).toFixed(0)),backgroundColor:GRN}],'');
+  const pieKeys=areaKeys.slice(0,8);
+  const pieColors=gradientColors(pieKeys.length);
+  const totalDTArea=areaKeys.reduce((a,k)=>a+byArea[k].dt,0);
+  const centerTextPlugin={id:'centerText',beforeDraw(chart){
+    const{ctx,chartArea:{top,bottom,left,right}}=chart;
+    const cx=(left+right)/2,cy=(top+bottom)/2;
+    ctx.save();
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle='#888';ctx.font='11px DM Sans, sans-serif';
+    ctx.fillText('Tổng DT',cx,cy-14);
+    ctx.fillStyle=ACC;ctx.font='bold 13px DM Mono, monospace';
+    ctx.fillText((totalDTArea/1e9).toFixed(2)+'B',cx,cy+4);
+    ctx.restore();
+  }};
+  charts['c-area-pie']=new Chart(document.getElementById('c-area-pie'),{
+    type:'doughnut',
+    data:{labels:pieKeys,datasets:[{data:pieKeys.map(k=>+(byArea[k].dt/1e6).toFixed(1)),
+      backgroundColor:pieColors,borderWidth:2,borderColor:'#18181f',hoverBorderColor:'#18181f',hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+      plugins:{
+        legend:{display:true,position:'bottom',labels:{color:'#666',font:{size:10},boxWidth:8,padding:10}},
+      }
+    },
+    plugins:[centerTextPlugin]
+  });
+  charts['c-area-margin']=new Chart(document.getElementById('c-area-margin'),{
+    type:'line',
+    data:{labels:areaKeys,datasets:[{
+      data:areaKeys.map(k=>+(byArea[k].ln/byArea[k].dt*100).toFixed(1)),
+      borderColor:ACC,backgroundColor:'rgba(245,166,35,0.06)',
+      tension:0.3,pointRadius:6,pointBackgroundColor:ACC,pointBorderColor:'#0c0c0f',pointBorderWidth:2
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{
+        y:{ticks:{callback:v=>v+'%',font:{size:11},color:'#555'},grid:{color:GRID}},
+        x:{ticks:{font:{size:10},color:'#555'},grid:{display:false}}
+      }
+    }
+  });
+  charts['c-area-per-stt']=new Chart(document.getElementById('c-area-per-stt'),{
+    type:'line',
+    data:{labels:areaKeys,datasets:[
+      {label:'DT/đơn',data:areaKeys.map(k=>+(byArea[k].dt/byArea[k].stt/1000).toFixed(0)),
+        borderColor:ACC,backgroundColor:'rgba(245,166,35,0.06)',
+        tension:0.3,pointRadius:6,pointBackgroundColor:ACC,pointBorderColor:'#0c0c0f',pointBorderWidth:2},
+      {label:'CP/đơn',data:areaKeys.map(k=>+(byArea[k].cp/byArea[k].stt/1000).toFixed(0)),
+        borderColor:GRN,backgroundColor:'rgba(74,143,111,0.06)',
+        tension:0.3,pointRadius:6,pointBackgroundColor:GRN,pointBorderColor:'#0c0c0f',pointBorderWidth:2}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{
+        y:{ticks:{font:{size:11},color:'#555'},grid:{color:GRID}},
+        x:{ticks:{font:{size:10},color:'#555'},grid:{display:false}}
+      }
+    }
+  });
   document.getElementById('area-table').innerHTML=areaKeys.map(k=>{
     const v=byArea[k];
     return`<tr><td style="color:#ddd;">${k}</td><td>${v.stt}</td><td>${fmtVND(v.dt)}</td><td>${fmtVND(v.cp)}</td>
@@ -715,20 +936,27 @@ function renderLTLFTL(){
   const tuanSet=[...new Set(rows.map(r=>r['Tuần']).filter(Boolean))].sort((a,b)=>Number(a)-Number(b));
   const colors=[ACC,GRN,BLU,'#d85a30','#534ab7'];
 
-  // DT theo tuần grouped by Loại
-  charts['c-ltl-dt']=new Chart(document.getElementById('c-ltl-dt'),{
-    type:'line',
-    data:{labels:tuanSet,datasets:loaiKeys.map((loai,i)=>({
-      label:loai,
-      data:tuanSet.map(t=>{
-        const r=rows.filter(r=>r['Tuần']===t&&r['Loại']===loai);
-        return+(r.reduce((a,r)=>a+parseNum(r['Doanh thu']),0)/1e6).toFixed(1);
-      }),
-      borderColor:colors[i%colors.length],
-      backgroundColor:colors[i%colors.length]+'15',
-      tension:0.3,pointRadius:3
-    }))},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{color:'#666',font:{size:10},boxWidth:8}}},scales:mkScale('M')}
+  // Donut: tỷ trọng DT theo loại
+  const donutDTColors=gradientColors(loaiKeys.length);
+  const totalDTLoai=loaiKeys.reduce((a,k)=>a+byLoai[k].dt,0);
+  const ctxDT=document.getElementById('c-ltl-dt');
+  charts['c-ltl-dt']=new Chart(ctxDT,{
+    type:'doughnut',
+    data:{labels:loaiKeys,datasets:[{
+      data:loaiKeys.map(k=>+(byLoai[k].dt/1e6).toFixed(1)),
+      backgroundColor:donutDTColors,borderWidth:2,borderColor:'#18181f',hoverOffset:6
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+      plugins:{legend:{display:true,position:'bottom',labels:{color:'#666',font:{size:10},boxWidth:8,padding:10}}}
+    },
+    plugins:[{id:'centerDT',beforeDraw(chart){
+      const{ctx,chartArea:{top,bottom,left,right}}=chart;
+      const cx=(left+right)/2,cy=(top+bottom)/2;
+      ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillStyle='#888';ctx.font='11px DM Sans,sans-serif';ctx.fillText('Tổng DT',cx,cy-14);
+      ctx.fillStyle=ACC;ctx.font='bold 13px DM Mono,monospace';
+      ctx.fillText((totalDTLoai/1e9).toFixed(2)+'B',cx,cy+4);ctx.restore();
+    }}]
   });
 
   // LN theo tuần grouped by Loại
@@ -765,7 +993,27 @@ function renderLTLFTL(){
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{color:'#666',font:{size:10},boxWidth:8}}},scales:mkScale('%')}
   });
 
-  mkPie('c-ltl-stt',loaiKeys,loaiKeys.map(k=>byLoai[k].stt));
+  // Donut: tỷ trọng số đơn theo loại
+  const donutSTTColors=gradientColors(loaiKeys.length);
+  const totalSTTLoai=loaiKeys.reduce((a,k)=>a+byLoai[k].stt,0);
+  charts['c-ltl-stt']=new Chart(document.getElementById('c-ltl-stt'),{
+    type:'doughnut',
+    data:{labels:loaiKeys,datasets:[{
+      data:loaiKeys.map(k=>byLoai[k].stt),
+      backgroundColor:donutSTTColors,borderWidth:2,borderColor:'#18181f',hoverOffset:6
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+      plugins:{legend:{display:true,position:'bottom',labels:{color:'#666',font:{size:10},boxWidth:8,padding:10}}}
+    },
+    plugins:[{id:'centerSTT',beforeDraw(chart){
+      const{ctx,chartArea:{top,bottom,left,right}}=chart;
+      const cx=(left+right)/2,cy=(top+bottom)/2;
+      ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillStyle='#888';ctx.font='11px DM Sans,sans-serif';ctx.fillText('Tổng đơn',cx,cy-14);
+      ctx.fillStyle=ACC;ctx.font='bold 13px DM Mono,monospace';
+      ctx.fillText(totalSTTLoai.toLocaleString('vi-VN'),cx,cy+4);ctx.restore();
+    }}]
+  });
 }
 
 function renderEfficiency(){
@@ -782,16 +1030,190 @@ function renderEfficiency(){
     mkKPI('DT/khối TB',fmtVND(totalDT/totalKhoi))+
     mkKPI('Tổng số xe',Math.round(totalXe).toLocaleString('vi-VN'))+
     mkKPI('Load Factor TB',fmtPct(loadFactor),'accent');
-  destroyChart('c-eff-cbm','c-eff-ln-cbm','c-eff-xe','c-eff-load');
-  mkLine('c-eff-cbm',tuanKeys,[
-    {data:tuanKeys.map(k=>+(byTuan[k].dt/byTuan[k].khoi).toFixed(0)),borderColor:ACC,backgroundColor:'rgba(245,166,35,0.06)'},
-    {data:tuanKeys.map(k=>+(byTuan[k].cp/byTuan[k].khoi).toFixed(0)),borderColor:GRN,backgroundColor:'rgba(74,143,111,0.06)'}
-  ],'');
+  destroyChart('c-eff-cbm','c-eff-growth','c-eff-ln-cbm','c-eff-ln-don','c-eff-xe','c-eff-load','c-eff-pershipment','c-eff-pershipment-growth');
+  const dtPerKhoi=tuanKeys.map(k=>byTuan[k].khoi?+(byTuan[k].dt/byTuan[k].khoi).toFixed(0):0);
+  const cpPerKhoi=tuanKeys.map(k=>byTuan[k].khoi?+(byTuan[k].cp/byTuan[k].khoi).toFixed(0):0);
+  charts['c-eff-cbm']=new Chart(document.getElementById('c-eff-cbm'),{
+    type:'bar',
+    data:{labels:tuanKeys,datasets:[
+      {label:'DT/khối',data:dtPerKhoi,backgroundColor:ACC,borderRadius:3},
+      {label:'CP/khối',data:cpPerKhoi,backgroundColor:GRN,borderRadius:3}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{
+        y:{ticks:{font:{size:11},color:'#555'},grid:{color:GRID}},
+        x:{ticks:{font:{size:10},color:'#555'},grid:{display:false}}
+      }
+    }
+  });
+  const growthDT=tuanKeys.map((k,i)=>{
+    if(i===0)return null;
+    const prev=dtPerKhoi[i-1],curr=dtPerKhoi[i];
+    return prev?+((curr-prev)/prev*100).toFixed(1):null;
+  });
+  const growthCP=tuanKeys.map((k,i)=>{
+    if(i===0)return null;
+    const prev=cpPerKhoi[i-1],curr=cpPerKhoi[i];
+    return prev?+((curr-prev)/prev*100).toFixed(1):null;
+  });
+  charts['c-eff-growth']=new Chart(document.getElementById('c-eff-growth'),{
+    type:'line',
+    data:{labels:tuanKeys,datasets:[
+      {label:'DT/khối',data:growthDT,borderColor:ACC,backgroundColor:'rgba(245,166,35,0.06)',
+        tension:0.3,pointRadius:4,pointBackgroundColor:ACC,pointBorderColor:'#0c0c0f',pointBorderWidth:2,spanGaps:true},
+      {label:'CP/khối',data:growthCP,borderColor:GRN,backgroundColor:'rgba(74,143,111,0.06)',
+        tension:0.3,pointRadius:4,pointBackgroundColor:GRN,pointBorderColor:'#0c0c0f',pointBorderWidth:2,spanGaps:true}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{
+        y:{ticks:{callback:v=>v+'%',font:{size:11},color:'#555'},grid:{color:GRID}},
+        x:{ticks:{font:{size:10},color:'#555'},grid:{display:false}}
+      }
+    }
+  });
   mkBar('c-eff-ln-cbm',tuanKeys,[{data:tuanKeys.map(k=>+(byTuan[k].ln/byTuan[k].khoi).toFixed(0)),backgroundColor:ACC}],'');
+  mkBar('c-eff-ln-don',tuanKeys,[{data:tuanKeys.map(k=>byTuan[k].stt?+(byTuan[k].ln/byTuan[k].stt/1000).toFixed(0):0),backgroundColor:GRN}],'');
   mkBar('c-eff-xe',tuanKeys,[{data:tuanKeys.map(k=>Math.round(byTuan[k].xe)),backgroundColor:GRN}],'');
   mkLine('c-eff-load',tuanKeys,[
     {data:tuanKeys.map(k=>+(byTuan[k].khoi/(byTuan[k].xe*13.5)*100).toFixed(1)),borderColor:ACC,backgroundColor:'rgba(245,166,35,0.06)'}
   ],'%');
+  const dtPerDon=tuanKeys.map(k=>byTuan[k].stt?+(byTuan[k].dt/byTuan[k].stt/1000).toFixed(0):0);
+  const lnPerDon=tuanKeys.map(k=>byTuan[k].stt?+(byTuan[k].ln/byTuan[k].stt/1000).toFixed(0):0);
+  charts['c-eff-pershipment']=new Chart(document.getElementById('c-eff-pershipment'),{
+    type:'bar',
+    data:{labels:tuanKeys,datasets:[
+      {label:'DT/đơn',data:dtPerDon,backgroundColor:ACC,borderRadius:3},
+      {label:'LN/đơn',data:lnPerDon,backgroundColor:GRN,borderRadius:3}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{
+        y:{ticks:{font:{size:11},color:'#555'},grid:{color:GRID}},
+        x:{ticks:{font:{size:10},color:'#555'},grid:{display:false}}
+      }
+    }
+  });
+  const growthDTDon=tuanKeys.map((k,i)=>{
+    if(i===0)return null;
+    const prev=dtPerDon[i-1],curr=dtPerDon[i];
+    return prev?+((curr-prev)/prev*100).toFixed(1):null;
+  });
+  const growthLNDon=tuanKeys.map((k,i)=>{
+    if(i===0)return null;
+    const prev=lnPerDon[i-1],curr=lnPerDon[i];
+    return prev?+((curr-prev)/prev*100).toFixed(1):null;
+  });
+  charts['c-eff-pershipment-growth']=new Chart(document.getElementById('c-eff-pershipment-growth'),{
+    type:'line',
+    data:{labels:tuanKeys,datasets:[
+      {label:'DT/đơn',data:growthDTDon,borderColor:ACC,backgroundColor:'rgba(245,166,35,0.06)',
+        tension:0.3,pointRadius:4,pointBackgroundColor:ACC,pointBorderColor:'#0c0c0f',pointBorderWidth:2,spanGaps:true},
+      {label:'LN/đơn',data:growthLNDon,borderColor:GRN,backgroundColor:'rgba(74,143,111,0.06)',
+        tension:0.3,pointRadius:4,pointBackgroundColor:GRN,pointBorderColor:'#0c0c0f',pointBorderWidth:2,spanGaps:true}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{
+        y:{ticks:{callback:v=>v+'%',font:{size:11},color:'#555'},grid:{color:GRID}},
+        x:{ticks:{font:{size:10},color:'#555'},grid:{display:false}}
+      }
+    }
+  });
+}
+
+function renderNhaXe(){
+  const rows=filteredRows;
+  const fmtVND=v=>new Intl.NumberFormat('vi-VN').format(Math.round(v))+' đ';
+  const short=n=>n.length>22?n.substring(0,20)+'…':n;
+
+  const byNX=rows.reduce((acc,r)=>{
+    const k=r['Nhà xe']||'Khác';
+    if(!acc[k])acc[k]={dt:0,cp:0,ln:0,stt:0,chuyen:new Set()};
+    acc[k].dt+=parseNum(r['Doanh thu']);
+    acc[k].cp+=parseNum(r['Chi phí']);
+    acc[k].ln+=parseNum(r['Lợi nhuận']);
+    acc[k].stt+=1;
+    if(r['Mã chuyến'])acc[k].chuyen.add(r['Mã chuyến']);
+    return acc;
+  },{});
+  Object.keys(byNX).forEach(k=>{byNX[k].chuyen=byNX[k].chuyen.size;});
+
+  const nxKeys=Object.keys(byNX).filter(k=>k&&k!=='Khác').sort((a,b)=>byNX[b].stt-byNX[a].stt);
+  const totalCP=nxKeys.reduce((a,k)=>a+byNX[k].cp,0);
+  const totalSTT=nxKeys.reduce((a,k)=>a+byNX[k].stt,0);
+  const totalChuyen=nxKeys.reduce((a,k)=>a+byNX[k].chuyen,0);
+
+  document.getElementById('nx-kpi').innerHTML=
+    mkKPI('Số nhà xe',nxKeys.length)+
+    mkKPI('Tổng số đơn',totalSTT.toLocaleString('vi-VN'))+
+    mkKPI('Tổng chi phí',fmtVND(totalCP))+
+    mkKPI('CP TB/đơn',fmtVND(totalSTT?totalCP/totalSTT:0),'accent');
+
+  destroyChart('c-nx-top-stt','c-nx-top-cp','c-nx-cpdon','c-nx-donut');
+
+  // Top 10 by số đơn
+  const top10stt=nxKeys.slice(0,10);
+  charts['c-nx-top-stt']=new Chart(document.getElementById('c-nx-top-stt'),{
+    type:'bar',
+    data:{labels:top10stt.map(k=>short(k)),datasets:[{data:top10stt.map(k=>byNX[k].stt),backgroundColor:GRN,borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{font:{size:10},color:'#555'},grid:{color:GRID}},y:{ticks:{font:{size:10},color:'#888'},grid:{display:false}}}
+    }
+  });
+
+  // Top 10 by chi phí
+  const top10cp=[...nxKeys].sort((a,b)=>byNX[b].cp-byNX[a].cp).slice(0,10);
+  charts['c-nx-top-cp']=new Chart(document.getElementById('c-nx-top-cp'),{
+    type:'bar',
+    data:{labels:top10cp.map(k=>short(k)),datasets:[{data:top10cp.map(k=>+(byNX[k].cp/1e6).toFixed(1)),backgroundColor:ACC,borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{callback:v=>v+'M',font:{size:10},color:'#555'},grid:{color:GRID}},y:{ticks:{font:{size:10},color:'#888'},grid:{display:false}}}
+    }
+  });
+
+  // CP/đơn theo nhà xe (top 15 by volume)
+  const top15=nxKeys.slice(0,15);
+  charts['c-nx-cpdon']=new Chart(document.getElementById('c-nx-cpdon'),{
+    type:'bar',
+    data:{labels:top15.map(k=>short(k)),datasets:[{data:top15.map(k=>+(byNX[k].cp/byNX[k].stt/1000).toFixed(0)),backgroundColor:ACC,borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{font:{size:10},color:'#555'},grid:{color:GRID}},y:{ticks:{font:{size:10},color:'#888'},grid:{display:false}}}
+    }
+  });
+
+  // Donut phân bổ
+  const top8=nxKeys.slice(0,8);
+  const donutColors=gradientColors(top8.length);
+  charts['c-nx-donut']=new Chart(document.getElementById('c-nx-donut'),{
+    type:'doughnut',
+    data:{labels:top8,datasets:[{data:top8.map(k=>byNX[k].stt),backgroundColor:donutColors,borderWidth:2,borderColor:'#18181f',hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+      plugins:{legend:{display:true,position:'bottom',labels:{color:'#666',font:{size:10},boxWidth:8,padding:8}}}
+    },
+    plugins:[{id:'centerNX',beforeDraw(chart){
+      const{ctx,chartArea:{top,bottom,left,right}}=chart;
+      const cx=(left+right)/2,cy=(top+bottom)/2;
+      ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillStyle='#888';ctx.font='11px DM Sans,sans-serif';ctx.fillText('Tổng đơn',cx,cy-14);
+      ctx.fillStyle=ACC;ctx.font='bold 13px DM Mono,monospace';ctx.fillText(totalSTT.toLocaleString('vi-VN'),cx,cy+4);
+      ctx.restore();
+    }}]
+  });
+
+  // Table
+  let cumCP=0;
+  document.getElementById('nx-table').innerHTML=nxKeys.map((k,i)=>{
+    const v=byNX[k];
+    cumCP+=v.cp;
+    const cpPct=totalCP?(v.cp/totalCP*100).toFixed(1):'—';
+    return`<tr>
+      <td style="color:var(--muted);font-family:var(--mono);">${i+1}</td>
+      <td style="color:#ddd;">${k}</td>
+      <td style="font-family:var(--mono);">${v.stt}</td>
+      <td style="font-family:var(--mono);">${v.chuyen}</td>
+      <td>${fmtVND(v.cp)}</td>
+      <td style="color:${ACC};">${fmtVND(v.stt?v.cp/v.stt:0)}</td>
+      <td style="color:#888;">${cpPct}%</td>
+    </tr>`;
+  }).join('');
 }
 
 function renderAll(){
@@ -800,6 +1222,7 @@ function renderAll(){
   renderArea();
   renderLTLFTL();
   renderEfficiency();
+  renderNhaXe();
 }
 
 function showPage(name,el){
