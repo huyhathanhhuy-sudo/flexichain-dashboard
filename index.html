@@ -550,7 +550,7 @@ function groupBy(rows,col){
     acc[k].cp+=parseNum(r['Chi phí']);
     acc[k].ln+=parseNum(r['Lợi nhuận']);
     acc[k].stt+=1;
-    acc[k].khoi+=parseNum(r['KHỐI']);
+    acc[k].khoi+=parseNum(r['Số khối']);
     acc[k].xe+=parseNum(r['Số xe hoạt động']);
     return acc;
   },{});
@@ -672,7 +672,7 @@ function renderCustomer(){
 function renderArea(){
   const rows=filteredRows;
   const fmtVND=v=>new Intl.NumberFormat('vi-VN').format(Math.round(v))+' đ';
-  const byArea=groupBy(rows,'Area');
+  const byArea=groupBy(rows,'Khu vực');
   const areaKeys=Object.keys(byArea).sort((a,b)=>byArea[b].dt-byArea[a].dt);
   const totalDT=areaKeys.reduce((a,k)=>a+byArea[k].dt,0);
   const totalLN=areaKeys.reduce((a,k)=>a+byArea[k].ln,0);
@@ -772,7 +772,7 @@ function renderEfficiency(){
   const rows=filteredRows;
   const byTuan=groupBy(rows,'Tuần');
   const tuanKeys=Object.keys(byTuan).sort((a,b)=>Number(a)-Number(b));
-  const totalKhoi=rows.reduce((a,r)=>a+parseNum(r['KHỐI']),0);
+  const totalKhoi=rows.reduce((a,r)=>a+parseNum(r['Số khối']),0);
   const totalDT=rows.reduce((a,r)=>a+parseNum(r['Doanh thu']),0);
   const totalXe=rows.reduce((a,r)=>a+parseNum(r['Số xe hoạt động']),0);
   const loadFactor=totalKhoi&&totalXe?(totalKhoi/(totalXe*13.5)*100):0;
