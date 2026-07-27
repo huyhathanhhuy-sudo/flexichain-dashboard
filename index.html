@@ -471,6 +471,22 @@ document.getElementById('intro-video').addEventListener('ended',skipIntro);
         <div class="chart-title">Phân bổ số đơn theo nhà xe</div>
         <div class="chart-wrap tall"><canvas id="c-nx-donut" role="img" aria-label="Donut chart phân bổ nhà xe"></canvas></div>
       </div>
+      <div class="chart-card">
+        <div class="chart-title">So sánh Margin % — 2 kỳ liền kề</div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:rgba(245,166,35,0.35);border:1px solid #f5a623;"></div><span id="nx-ky1-label">Kỳ trước</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background:#f5a623;"></div><span id="nx-ky2-label">Kỳ này</span></div>
+        </div>
+        <div class="chart-wrap tall"><canvas id="c-nx-margin-cmp" role="img" aria-label="Grouped bar so sánh margin nhà xe"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">So sánh Lợi nhuận — 2 kỳ liền kề</div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:rgba(74,143,111,0.35);border:1px solid #4a8f6f;"></div>Kỳ trước</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#4a8f6f;"></div>Kỳ này</div>
+        </div>
+        <div class="chart-wrap tall"><canvas id="c-nx-ln-cmp" role="img" aria-label="Grouped bar so sánh lợi nhuận nhà xe"></canvas></div>
+      </div>
     </div>
     <div class="table-card">
       <div class="chart-title">Chi tiết nhà xe</div>
@@ -619,7 +635,7 @@ function applyFilters(){
 
 function populateFilters(){
   const nams=[...new Set(allRows.map(r=>r['Năm']).filter(Boolean))].sort();
-  const thangs=[...new Set(allRows.map(r=>r['Tháng']).filter(Boolean))].sort();
+  const thangs=[...new Set(allRows.map(r=>r['Tháng']).filter(Boolean))].sort((a,b)=>Number(a)-Number(b));
   const tuans=[...new Set(allRows.map(r=>r['Tuần']).filter(Boolean))].sort((a,b)=>Number(a)-Number(b));
   buildDropdown('ms-nam','nam',nams);
   buildDropdown('ms-thang','thang',thangs);
@@ -702,7 +718,7 @@ function renderExecutive(){
     mkKPI('Số chuyến đã chạy',totalChuyen.toLocaleString('vi-VN'));
 
   const byThang=groupBy(rows,'Tháng');
-  const thangKeys=Object.keys(byThang).sort();
+  const thangKeys=Object.keys(byThang).sort((a,b)=>Number(a)-Number(b));
   destroyChart('c-exec-thang','c-exec-sodon','c-exec-tuan','c-exec-margin','c-exec-thung');
 
   const byTuan=groupBy(rows,'Tuần');
@@ -1147,7 +1163,7 @@ function renderNhaXe(){
     mkKPI('Tổng chi phí',fmtVND(totalCP))+
     mkKPI('CP TB/đơn',fmtVND(totalSTT?totalCP/totalSTT:0),'accent');
 
-  destroyChart('c-nx-top-stt','c-nx-top-cp','c-nx-cpdon','c-nx-donut');
+  destroyChart('c-nx-top-stt','c-nx-top-cp','c-nx-cpdon','c-nx-donut','c-nx-margin-cmp','c-nx-ln-cmp');
 
   // Top 10 by số đơn
   const top10stt=nxKeys.slice(0,10);
@@ -1197,6 +1213,71 @@ function renderNhaXe(){
       ctx.restore();
     }}]
   });
+
+  // So sánh 2 kỳ liền kề (Tháng)
+  const thangSet=[...new Set(rows.map(r=>r['Tháng']).filter(Boolean))].sort();
+  if(thangSet.length>=2){
+    const ky1=thangSet[thangSet.length-2];
+    const ky2=thangSet[thangSet.length-1];
+    // Update legend labels
+    const l1=document.getElementById('nx-ky1-label');
+    const l2=document.getElementById('nx-ky2-label');
+    if(l1)l1.textContent='Tháng '+ky1;
+    if(l2)l2.textContent='Tháng '+ky2;
+
+    function groupNXPeriod(periodRows){
+      return periodRows.reduce((acc,r)=>{
+        const k=r['Nhà xe']||'Khác';
+        if(!acc[k])acc[k]={dt:0,cp:0,ln:0,stt:0};
+        acc[k].dt+=parseNum(r['Doanh thu']);
+        acc[k].cp+=parseNum(r['Chi phí']);
+        acc[k].ln+=parseNum(r['Lợi nhuận']);
+        acc[k].stt++;
+        return acc;
+      },{});
+    }
+    const byNXKy1=groupNXPeriod(rows.filter(r=>r['Tháng']===ky1));
+    const byNXKy2=groupNXPeriod(rows.filter(r=>r['Tháng']===ky2));
+
+    // Top 10 carriers by combined volume
+    const cmpKeys=[...new Set([...Object.keys(byNXKy1),...Object.keys(byNXKy2)])].filter(k=>k&&k!=='Khác')
+      .sort((a,b)=>((byNXKy2[b]?.dt||0)+(byNXKy1[b]?.dt||0))-((byNXKy2[a]?.dt||0)+(byNXKy1[a]?.dt||0)))
+      .slice(0,10);
+
+    const marginKy1=cmpKeys.map(k=>{const v=byNXKy1[k];return v&&v.dt?+(v.ln/v.dt*100).toFixed(1):null;});
+    const marginKy2=cmpKeys.map(k=>{const v=byNXKy2[k];return v&&v.dt?+(v.ln/v.dt*100).toFixed(1):null;});
+    const lnKy1=cmpKeys.map(k=>+((byNXKy1[k]?.ln||0)/1e6).toFixed(1));
+    const lnKy2=cmpKeys.map(k=>+((byNXKy2[k]?.ln||0)/1e6).toFixed(1));
+    const shortLabels=cmpKeys.map(k=>k.length>18?k.substring(0,16)+'…':k);
+
+    charts['c-nx-margin-cmp']=new Chart(document.getElementById('c-nx-margin-cmp'),{
+      type:'bar',
+      data:{labels:shortLabels,datasets:[
+        {label:'Tháng '+ky1,data:marginKy1,backgroundColor:'rgba(245,166,35,0.35)',borderColor:ACC,borderWidth:1,borderRadius:3},
+        {label:'Tháng '+ky2,data:marginKy2,backgroundColor:ACC,borderRadius:3}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{
+          y:{ticks:{callback:v=>v+'%',font:{size:11},color:'#555'},grid:{color:GRID}},
+          x:{ticks:{font:{size:9},color:'#888',maxRotation:30},grid:{display:false}}
+        }
+      }
+    });
+
+    charts['c-nx-ln-cmp']=new Chart(document.getElementById('c-nx-ln-cmp'),{
+      type:'bar',
+      data:{labels:shortLabels,datasets:[
+        {label:'Tháng '+ky1,data:lnKy1,backgroundColor:'rgba(74,143,111,0.35)',borderColor:GRN,borderWidth:1,borderRadius:3},
+        {label:'Tháng '+ky2,data:lnKy2,backgroundColor:GRN,borderRadius:3}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{
+          y:{ticks:{callback:v=>v+'M',font:{size:11},color:'#555'},grid:{color:GRID}},
+          x:{ticks:{font:{size:9},color:'#888',maxRotation:30},grid:{display:false}}
+        }
+      }
+    });
+  }
 
   // Table
   let cumCP=0;
