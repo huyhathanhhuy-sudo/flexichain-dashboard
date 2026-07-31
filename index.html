@@ -77,6 +77,9 @@ nav{
 .filter-divider{width:0.5px;height:20px;background:var(--border);}
 .filter-reset{background:transparent;border:0.5px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;font-family:var(--font);}
 .filter-reset:hover{color:var(--text);}
+.mt-mbtn{background:var(--card);border:0.5px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:5px;font-size:11px;cursor:pointer;font-family:var(--font);margin-right:6px;margin-bottom:6px;transition:all .15s;}
+.mt-mbtn:hover{color:var(--text);border-color:var(--accent);}
+.mt-mbtn.active{background:rgba(245,166,35,0.12);border-color:var(--accent);color:var(--accent);}
 #filter-summary{font-size:11px;color:var(--accent);font-family:var(--mono);margin-left:auto;}
 
 /* MULTI-SELECT DROPDOWN */
@@ -209,6 +212,7 @@ document.getElementById('intro-video').addEventListener('ended',skipIntro);
   <div class="nav-tab" onclick="showPage('ltlftl',this)">LTL vs FTL</div>
   <div class="nav-tab" onclick="showPage('efficiency',this)">Hiệu suất</div>
   <div class="nav-tab" onclick="showPage('nhaxe',this)">Nhà xe</div>
+  <div class="nav-tab" onclick="showPage('mientrung',this)">Miền Trung</div>
 </nav>
 
 <div class="global-filter">
@@ -500,6 +504,33 @@ document.getElementById('intro-video').addEventListener('ended',skipIntro);
       </table>
     </div>
   </div>
+
+  <!-- PAGE 7: MIỀN TRUNG -->
+  <div class="page" id="page-mientrung">
+    <div class="kpi-grid kpi-grid-4" id="mt-kpi"></div>
+    <div class="charts-grid charts-2">
+      <div class="chart-card">
+        <div class="chart-title">Doanh thu theo tháng — từng khách hàng (Miền Trung)</div>
+        <div class="chart-wrap tall"><canvas id="c-mt-thang" role="img" aria-label="Grouped bar doanh thu khách hàng Miền Trung theo tháng"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">% Tỷ trọng đóng góp doanh thu (Miền Trung)</div>
+        <div class="chart-wrap tall"><canvas id="c-mt-share" role="img" aria-label="Donut tỷ trọng doanh thu khách hàng Miền Trung"></canvas></div>
+      </div>
+    </div>
+    <div class="table-card">
+      <div class="chart-title">Chi tiết khách hàng — Miền Trung</div>
+      <div id="mt-month-filter" style="display:flex;flex-wrap:wrap;margin:2px 0 14px;"></div>
+      <table>
+        <thead><tr>
+          <th style="width:4%;">STT</th>
+          <th style="width:36%;">Khách hàng</th>
+          <th>Doanh thu</th><th>Lợi nhuận</th><th>% Margin</th><th>Số đơn</th><th>% tỷ trọng DT</th>
+        </tr></thead>
+        <tbody id="mt-table"></tbody>
+      </table>
+    </div>
+  </div>
 </main>
 
 <script>
@@ -511,6 +542,7 @@ const PIE_COLORS=[ACC,GRN,'#888','#d85a30','#534ab7','#d4537e',BLU,'#1d9e75','#e
 const GRID='rgba(255,255,255,0.05)';
 
 let allRows=[],filteredRows=[],charts={};
+let mtRows=[],mtMonth='';
 const fmtM=v=>(v/1e6).toFixed(1)+'M';
 const fmtK=v=>(v/1000).toFixed(0)+'K';
 const fmtPct=v=>v.toFixed(1)+'%';
@@ -1297,6 +1329,127 @@ function renderNhaXe(){
   }).join('');
 }
 
+function renderMienTrung(){
+  // Chỉ lấy khách hàng thuộc khu vực Miền Trung (vẫn tôn trọng bộ lọc năm/tháng/tuần)
+  const rows=filteredRows.filter(r=>(r['Khu vực']||'').trim()==='Miền Trung');
+  mtRows=rows; // dùng cho bộ lọc tháng riêng của bảng
+  const fmtVND=v=>new Intl.NumberFormat('vi-VN').format(Math.round(v))+' đ';
+
+  const byKH=groupBy(rows,'NPP');
+  const custKeys=Object.keys(byKH).sort((a,b)=>byKH[b].dt-byKH[a].dt);
+  const totalDT=custKeys.reduce((a,k)=>a+byKH[k].dt,0);
+  const totalLN=custKeys.reduce((a,k)=>a+byKH[k].ln,0);
+  const months=[...new Set(rows.map(r=>r['Tháng']).filter(Boolean))].sort((a,b)=>Number(a)-Number(b));
+
+  document.getElementById('mt-kpi').innerHTML=
+    mkKPI('Số khách hàng',custKeys.length)+
+    mkKPI('Tổng doanh thu (MT)',fmtVND(totalDT),'accent')+
+    mkKPI('Tổng lợi nhuận (MT)',fmtVND(totalLN),'accent')+
+    mkKPI('Số đơn',rows.length.toLocaleString('vi-VN'));
+
+  destroyChart('c-mt-thang','c-mt-share');
+
+  if(custKeys.length===0){
+    document.getElementById('mt-month-filter').innerHTML='';
+    document.getElementById('mt-table').innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);">Không có dữ liệu Miền Trung với bộ lọc hiện tại</td></tr>';
+    return;
+  }
+
+  const colors=gradientColors(custKeys.length);
+
+  // Chart 1: Doanh thu theo tháng — cột nhóm, mỗi khách hàng 1 màu
+  const datasets=custKeys.map((k,i)=>({
+    label:k,
+    data:months.map(m=>{
+      const rev=rows.filter(r=>r['NPP']===k && r['Tháng']===m)
+                    .reduce((a,r)=>a+parseNum(r['Doanh thu']),0);
+      return +(rev/1e6).toFixed(1);
+    }),
+    backgroundColor:colors[i],borderRadius:3
+  }));
+  charts['c-mt-thang']=new Chart(document.getElementById('c-mt-thang'),{
+    type:'bar',
+    data:{labels:months.map(m=>'Tháng '+m),datasets},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true,position:'bottom',labels:{color:'#888',font:{size:10},boxWidth:8,padding:8}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y+'M đ'}}
+      },
+      scales:mkScale('M')}
+  });
+
+  // Chart 2: % tỷ trọng đóng góp doanh thu trong tổng DT Miền Trung — donut
+  const centerTextMT={id:'centerMT',beforeDraw(chart){
+    const{ctx,chartArea:{top,bottom,left,right}}=chart;
+    const cx=(left+right)/2,cy=(top+bottom)/2;
+    ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle='#888';ctx.font='11px DM Sans,sans-serif';ctx.fillText('Tổng DT MT',cx,cy-14);
+    ctx.fillStyle=ACC;ctx.font='bold 13px DM Mono,monospace';
+    ctx.fillText((totalDT/1e6).toFixed(1)+'M',cx,cy+4);
+    ctx.restore();
+  }};
+  charts['c-mt-share']=new Chart(document.getElementById('c-mt-share'),{
+    type:'doughnut',
+    data:{labels:custKeys,datasets:[{
+      data:custKeys.map(k=>+(byKH[k].dt/1e6).toFixed(2)),
+      backgroundColor:colors,borderWidth:2,borderColor:'#18181f',hoverOffset:6
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+      plugins:{
+        legend:{display:true,position:'bottom',labels:{color:'#888',font:{size:10},boxWidth:8,padding:8}},
+        tooltip:{callbacks:{label:c=>{
+          const pct=totalDT?(byKH[c.label].dt/totalDT*100).toFixed(1):0;
+          return c.label+': '+c.parsed+'M đ ('+pct+'%)';
+        }}}
+      }
+    },
+    plugins:[centerTextMT]
+  });
+
+  // Bảng chi tiết (có bộ lọc theo tháng riêng)
+  renderMTTable();
+}
+
+// Bảng "Chi tiết khách hàng — Miền Trung" với bộ lọc theo từng tháng.
+// mtMonth='' nghĩa là tất cả các tháng; % tỷ trọng tính theo tổng DT của tháng đang chọn.
+function renderMTTable(){
+  const fmtVND=v=>new Intl.NumberFormat('vi-VN').format(Math.round(v))+' đ';
+  const months=[...new Set(mtRows.map(r=>r['Tháng']).filter(Boolean))].sort((a,b)=>Number(a)-Number(b));
+  if(mtMonth && !months.includes(mtMonth)) mtMonth=''; // tháng đã chọn không còn dữ liệu -> về "Tất cả"
+
+  // Dãy nút chọn tháng
+  document.getElementById('mt-month-filter').innerHTML=
+    `<button class="mt-mbtn ${mtMonth===''?'active':''}" onclick="mtSelectMonth('')">Tất cả tháng</button>`+
+    months.map(m=>`<button class="mt-mbtn ${mtMonth===m?'active':''}" onclick="mtSelectMonth('${m}')">Tháng ${m}</button>`).join('');
+
+  const rows=mtMonth?mtRows.filter(r=>r['Tháng']===mtMonth):mtRows;
+  const byKH=groupBy(rows,'NPP');
+  const keys=Object.keys(byKH).sort((a,b)=>byKH[b].dt-byKH[a].dt);
+  const total=keys.reduce((a,k)=>a+byKH[k].dt,0);
+
+  const tbody=document.getElementById('mt-table');
+  if(keys.length===0){
+    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);">Không có dữ liệu cho tháng này</td></tr>';
+    return;
+  }
+  tbody.innerHTML=keys.map((k,i)=>{
+    const v=byKH[k];
+    const pct=total?(v.dt/total*100).toFixed(1):'—';
+    const margin=v.dt?(v.ln/v.dt*100).toFixed(1):'—';
+    return`<tr>
+      <td style="color:var(--muted);font-family:var(--mono);">${i+1}</td>
+      <td style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:0;" title="${k}">${k}</td>
+      <td>${fmtVND(v.dt)}</td>
+      <td style="color:${v.ln>=0?ACC:RED};">${fmtVND(v.ln)}</td>
+      <td style="color:${v.ln>=0?ACC:RED};">${margin}%</td>
+      <td>${v.stt.toLocaleString('vi-VN')}</td>
+      <td style="color:${GRN};">${pct}%</td>
+    </tr>`;
+  }).join('');
+}
+
+function mtSelectMonth(m){ mtMonth=m; renderMTTable(); }
+
 function renderAll(){
   renderExecutive();
   renderCustomer();
@@ -1304,6 +1457,7 @@ function renderAll(){
   renderLTLFTL();
   renderEfficiency();
   renderNhaXe();
+  renderMienTrung();
 }
 
 function showPage(name,el){
