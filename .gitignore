@@ -1,3 +1,6 @@
 _fmt.json
 _unf.json
 _all.json
+
+# Cấu hình chứa API key — không đẩy lên repo
+config.js

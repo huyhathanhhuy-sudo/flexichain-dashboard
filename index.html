@@ -533,10 +533,12 @@ document.getElementById('intro-video').addEventListener('ended',skipIntro);
   </div>
 </main>
 
+<script src="config.js"></script>
 <script>
-const SHEET_ID='1DiBDbLoW1O4YKI1p9YWYbn3-f2UIhBDhiaoS__jvs1A';
-const API_KEY='AIzaSyCQKpN8jk7wVxifofYAO-aTRTSzpl1H7Ik';
-const SHEET_NAME='data';
+const CFG=window.APP_CONFIG||{};
+const SHEET_ID=CFG.SHEET_ID;
+const API_KEY=CFG.API_KEY;
+const SHEET_NAME=CFG.SHEET_NAME||'data';
 const ACC='#f5a623',GRN='#4a8f6f',BLU='#3266ad',RED='#c0392b';
 const PIE_COLORS=[ACC,GRN,'#888','#d85a30','#534ab7','#d4537e',BLU,'#1d9e75','#e67e22','#9b59b6'];
 const GRID='rgba(255,255,255,0.05)';
@@ -1471,6 +1473,7 @@ async function loadData(){
   document.getElementById('status-text').textContent='Đang tải...';
   document.getElementById('status-dot').style.background='#f5a623';
   try{
+    if(!SHEET_ID||!API_KEY)throw new Error('Thiếu config.js — copy config.example.js thành config.js rồi điền SHEET_ID và API_KEY');
     const url=`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
     const res=await fetch(url);
     const json=await res.json();
