@@ -81,6 +81,11 @@ nav{
 .mt-mbtn:hover{color:var(--text);border-color:var(--accent);}
 .mt-mbtn.active{background:rgba(245,166,35,0.12);border-color:var(--accent);color:var(--accent);}
 #filter-summary{font-size:11px;color:var(--accent);font-family:var(--mono);margin-left:auto;}
+.proj-seg{display:inline-flex;border:0.5px solid var(--border);border-radius:5px;overflow:hidden;}
+.proj-seg button{background:var(--card);border:none;border-right:0.5px solid var(--border);color:var(--muted);padding:5px 14px;font-size:11px;cursor:pointer;font-family:var(--font);transition:all .15s;white-space:nowrap;}
+.proj-seg button:last-child{border-right:none;}
+.proj-seg button:hover{color:var(--text);}
+.proj-seg button.active{background:rgba(245,166,35,0.14);color:var(--accent);font-weight:600;}
 
 /* MULTI-SELECT DROPDOWN */
 .ms-wrap{position:relative;}
@@ -217,6 +222,10 @@ document.getElementById('intro-video').addEventListener('ended',skipIntro);
 
 <div class="global-filter">
   <span class="filter-label">Lọc:</span>
+
+  <div class="proj-seg" id="proj-seg"></div>
+
+  <div class="filter-divider"></div>
 
   <div class="ms-wrap" id="ms-nam">
     <button class="ms-btn" onclick="toggleDropdown('ms-nam')">Tất cả năm</button>
@@ -568,6 +577,22 @@ const mkScale=fmt=>({
 
 // ---- MULTI-SELECT ----
 const selections={nam:new Set(),thang:new Set(),tuan:new Set()};
+let selectedProject='';
+
+function buildProjects(){
+  const projs=[...new Set(allRows.map(r=>r['Dự án']).filter(Boolean))].sort();
+  const seg=document.getElementById('proj-seg');
+  const btns=[`<button class="active" data-proj="" onclick="selectProject('',this)">Tất cả</button>`];
+  projs.forEach(p=>btns.push(`<button data-proj="${p}" onclick="selectProject('${p}',this)">${p}</button>`));
+  seg.innerHTML=btns.join('');
+}
+
+function selectProject(p,el){
+  selectedProject=p;
+  document.querySelectorAll('#proj-seg button').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
+}
 
 function toggleDropdown(id){
   document.querySelectorAll('.ms-dropdown').forEach(d=>{
@@ -639,6 +664,8 @@ function filterItems(msId,query){
 }
 
 function resetFilters(){
+  selectedProject='';
+  document.querySelectorAll('#proj-seg button').forEach(b=>b.classList.toggle('active',b.dataset.proj===''));
   ['nam','thang','tuan'].forEach(key=>{
     selections[key].clear();
     document.querySelectorAll(`#items-${key} input[type=checkbox]`).forEach(cb=>cb.checked=false);
@@ -653,12 +680,14 @@ function resetFilters(){
 
 function applyFilters(){
   filteredRows=allRows.filter(r=>{
+    if(selectedProject&&r['Dự án']!==selectedProject)return false;
     if(selections.nam.size>0&&!selections.nam.has(r['Năm']))return false;
     if(selections.thang.size>0&&!selections.thang.has(r['Tháng']))return false;
     if(selections.tuan.size>0&&!selections.tuan.has(r['Tuần']))return false;
     return true;
   });
   const parts=[];
+  if(selectedProject) parts.push('Dự án: '+selectedProject);
   if(selections.nam.size>0) parts.push([...selections.nam].join(', '));
   if(selections.thang.size>0) parts.push([...selections.thang].join(', '));
   if(selections.tuan.size>0) parts.push('Tuần '+[...selections.tuan].join(', '));
@@ -674,6 +703,7 @@ function populateFilters(){
   buildDropdown('ms-nam','nam',nams);
   buildDropdown('ms-thang','thang',thangs);
   buildDropdown('ms-tuan','tuan',tuans);
+  buildProjects();
 }
 
 // ---- CHARTS ----
