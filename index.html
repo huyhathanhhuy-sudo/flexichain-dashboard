@@ -218,6 +218,7 @@ document.getElementById('intro-video').addEventListener('ended',skipIntro);
   <div class="nav-tab" onclick="showPage('efficiency',this)">Hiệu suất</div>
   <div class="nav-tab" onclick="showPage('nhaxe',this)">Nhà xe</div>
   <div class="nav-tab" onclick="showPage('mientrung',this)">Miền Trung</div>
+  <div class="nav-tab" onclick="showPage('mientay',this)">Miền Tây — Giao hàng</div>
 </nav>
 
 <div class="global-filter">
@@ -537,6 +538,30 @@ document.getElementById('intro-video').addEventListener('ended',skipIntro);
           <th>Doanh thu</th><th>Lợi nhuận</th><th>% Margin</th><th>Số đơn</th><th>% tỷ trọng DT</th>
         </tr></thead>
         <tbody id="mt-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PAGE 8: MIỀN TÂY — NGÀY LẤY vs NGÀY GIAO -->
+  <!-- Số liệu do scripts/mientay_calc.py tính (chạy bằng Pyodide), theo bộ lọc toàn cục -->
+  <div class="page" id="page-mientay">
+    <div id="mtay-note" style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:10px;">—</div>
+    <div class="kpi-grid kpi-grid-4" id="mtay-kpi"></div>
+    <div class="charts-grid charts-2">
+      <div class="chart-card">
+        <div class="chart-title">Ngày lấy hàng = / ≠ Ngày giao hàng (Miền Tây)</div>
+        <div class="chart-wrap tall"><canvas id="c-mtay-ratio" role="img" aria-label="Donut tỷ lệ đơn Miền Tây giao cùng ngày và khác ngày lấy hàng"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Đơn giao khác ngày — theo số ngày giao sau ngày lấy</div>
+        <div class="chart-wrap tall"><canvas id="c-mtay-delay" role="img" aria-label="Biểu đồ cột số đơn Miền Tây theo số ngày giao sau ngày lấy hàng"></canvas></div>
+      </div>
+    </div>
+    <div class="table-card">
+      <div class="chart-title">Chi tiết</div>
+      <table>
+        <thead><tr><th>Nhóm</th><th>Số đơn</th><th>% trên tổng đơn</th><th>% trong nhóm khác ngày</th></tr></thead>
+        <tbody id="mtay-table"></tbody>
       </table>
     </div>
   </div>
@@ -1482,6 +1507,112 @@ function renderMTTable(){
 
 function mtSelectMonth(m){ mtMonth=m; renderMTTable(); }
 
+// Miền Tây — ngày lấy vs ngày giao. Phần tính toán nằm ở scripts/mientay_calc.py, chạy bằng
+// Pyodide (Python trong trình duyệt) trên filteredRows; JS chỉ hiển thị kết quả, không tính lại.
+// Pyodide chỉ được tải khi mở tab này lần đầu.
+const PYODIDE_URL='https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+let pyReady=null,mtayToken=0;
+
+function ensurePyodide(){
+  if(!pyReady)pyReady=(async()=>{
+    await new Promise((ok,fail)=>{
+      const s=document.createElement('script');
+      s.src=PYODIDE_URL+'pyodide.js';s.onload=ok;s.onerror=()=>fail(new Error('không tải được Pyodide'));
+      document.head.appendChild(s);
+    });
+    const py=await loadPyodide({indexURL:PYODIDE_URL});
+    const res=await fetch('scripts/mientay_calc.py',{cache:'no-store'});
+    if(!res.ok)throw new Error('không tải được mientay_calc.py (HTTP '+res.status+')');
+    py.runPython(await res.text());
+    return py;
+  })().catch(e=>{pyReady=null;throw e;});
+  return pyReady;
+}
+
+async function renderMienTay(){
+  // Chỉ tính khi tab đang mở; showPage sẽ gọi lại khi người dùng chuyển sang tab
+  if(!document.getElementById('page-mientay').classList.contains('active'))return;
+  const token=++mtayToken;
+  const note=document.getElementById('mtay-note');
+  note.textContent=pyReady?'Python đang tính...':'Đang tải Python (Pyodide) — lần đầu mất vài giây...';
+  try{
+    const py=await ensurePyodide();
+    const fn=py.globals.get('tinh_mien_tay_json');
+    const out=fn(JSON.stringify(filteredRows));
+    fn.destroy();
+    if(token!==mtayToken)return; // bộ lọc đã đổi trong lúc chờ
+    drawMienTay(JSON.parse(out));
+  }catch(e){
+    if(token===mtayToken)note.textContent='Lỗi khi chạy Python: '+e.message;
+  }
+}
+
+function drawMienTay(d){
+  const fmtN=v=>Number(v).toLocaleString('vi-VN');
+  const fmtP=v=>Number(v).toLocaleString('vi-VN',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+  const filt=document.getElementById('filter-summary').textContent;
+  document.getElementById('mtay-note').textContent=
+    'Tính bằng Python (Pyodide) · bộ lọc: '+(filt||'tất cả')+
+    (d.so_dong_loi_ngay?' · '+d.so_dong_loi_ngay+' dòng lỗi định dạng ngày bị loại':'');
+
+  destroyChart('c-mtay-ratio','c-mtay-delay');
+  if(!d.tong_don){
+    document.getElementById('mtay-kpi').innerHTML=
+      mkKPI('Tổng đơn Miền Tây','0')+mkKPI('Lấy = Giao (cùng ngày)','—')+mkKPI('Lấy ≠ Giao (khác ngày)','—')+mkKPI('Tỷ lệ giao cùng ngày','—');
+    document.getElementById('mtay-table').innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted);">Không có đơn Miền Tây với bộ lọc hiện tại</td></tr>';
+    return;
+  }
+
+  document.getElementById('mtay-kpi').innerHTML=
+    mkKPI('Tổng đơn Miền Tây',fmtN(d.tong_don))+
+    mkKPI('Lấy = Giao (cùng ngày)',fmtN(d.cung_ngay),'accent')+
+    mkKPI('Lấy ≠ Giao (khác ngày)',fmtN(d.khac_ngay))+
+    mkKPI('Tỷ lệ giao cùng ngày',fmtP(d.ty_le_cung_ngay),'accent');
+
+  const centerText={id:'centerMTay',beforeDraw(chart){
+    const{ctx,chartArea:{top,bottom,left,right}}=chart;
+    const cx=(left+right)/2,cy=(top+bottom)/2;
+    ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle='#888';ctx.font='11px DM Sans,sans-serif';ctx.fillText('Cùng ngày',cx,cy-14);
+    ctx.fillStyle=ACC;ctx.font='bold 13px DM Mono,monospace';ctx.fillText(fmtP(d.ty_le_cung_ngay),cx,cy+4);
+    ctx.restore();
+  }};
+  const ratioPct=[d.ty_le_cung_ngay,d.ty_le_khac_ngay];
+  charts['c-mtay-ratio']=new Chart(document.getElementById('c-mtay-ratio'),{
+    type:'doughnut',
+    data:{labels:['Lấy = Giao','Lấy ≠ Giao'],datasets:[{
+      data:[d.cung_ngay,d.khac_ngay],
+      backgroundColor:[ACC,GRN],borderWidth:2,borderColor:'#18181f',hoverOffset:6
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+      plugins:{
+        legend:{display:true,position:'bottom',labels:{color:'#888',font:{size:11},boxWidth:8,padding:10}},
+        tooltip:{callbacks:{label:c=>c.label+': '+fmtN(c.parsed)+' đơn ('+fmtP(ratioPct[c.dataIndex])+')'}}
+      }
+    },
+    plugins:[centerText]
+  });
+
+  const det=d.chi_tiet_khac_ngay||[];
+  const delayLabel=x=>x.so_ngay>0?'Giao sau '+x.so_ngay+' ngày':'Giao trước '+(-x.so_ngay)+' ngày';
+  charts['c-mtay-delay']=new Chart(document.getElementById('c-mtay-delay'),{
+    type:'bar',
+    data:{labels:det.map(delayLabel),datasets:[{data:det.map(x=>x.so_don),backgroundColor:GRN,borderRadius:3,maxBarThickness:80}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>{const x=det[c.dataIndex];
+          return fmtN(x.so_don)+' đơn · '+fmtP(x.ty_le)+' tổng đơn · '+fmtP(x.ty_le_trong_khac_ngay)+' nhóm khác ngày';}}}},
+      scales:{...mkScale(''),y:{...mkScale('').y,beginAtZero:true,ticks:{...mkScale('').y.ticks,precision:0}}}}
+  });
+
+  const tr=(name,n,p,p2,bold)=>`<tr${bold?' style="font-weight:600;"':''}><td>${name}</td><td>${fmtN(n)}</td><td>${fmtP(p)}</td><td>${p2===null?'—':fmtP(p2)}</td></tr>`;
+  document.getElementById('mtay-table').innerHTML=
+    tr('Lấy = Giao (cùng ngày)',d.cung_ngay,d.ty_le_cung_ngay,null,true)+
+    tr('Lấy ≠ Giao (khác ngày)',d.khac_ngay,d.ty_le_khac_ngay,null,true)+
+    det.map(x=>tr('&nbsp;&nbsp;&nbsp;↳ '+delayLabel(x),x.so_don,x.ty_le,x.ty_le_trong_khac_ngay,false)).join('')+
+    tr('Tổng đơn Miền Tây',d.tong_don,100,null,true);
+}
+
 function renderAll(){
   renderExecutive();
   renderCustomer();
@@ -1490,6 +1621,7 @@ function renderAll(){
   renderEfficiency();
   renderNhaXe();
   renderMienTrung();
+  renderMienTay();
 }
 
 function showPage(name,el){
@@ -1497,6 +1629,7 @@ function showPage(name,el){
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   el.classList.add('active');
+  if(name==='mientay')renderMienTay();
 }
 
 async function loadData(){
