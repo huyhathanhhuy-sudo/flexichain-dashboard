@@ -1304,7 +1304,7 @@ function renderNhaXe(){
   });
 
   // So sánh 2 kỳ liền kề (Tháng)
-  const thangSet=[...new Set(rows.map(r=>r['Tháng']).filter(Boolean))].sort();
+  const thangSet=[...new Set(rows.map(r=>r['Tháng']).filter(Boolean))].sort((a,b)=>Number(a)-Number(b));
   if(thangSet.length>=2){
     const ky1=thangSet[thangSet.length-2];
     const ky2=thangSet[thangSet.length-1];
